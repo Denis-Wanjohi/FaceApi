@@ -1,13 +1,13 @@
 <template>
   <div id="app" style="display: flex;height: 500;">
     <video ref="video" width="200"  autoplay></video>
-    <!-- <canvas ref="canvas" width="640" height="480"></canvas> -->
+    <canvas ref="canvas" width="640" height="480"></canvas>
   </div>
   <!-- <p v-if="detection">{{detection.length}}</p> -->
    <p v-if="expression">
     {{ face }}
    </p>
-
+   <!-- <Button @click.prevent="compare">compare</Button> -->
 </template>
 
 <script setup>
@@ -103,6 +103,37 @@ onMounted(async () => {
   await loadModels();
   await startVideoStream();
 });
+
+function compare(params) {
+  const compareFaces = async (imgPath1, imgPath2) => {
+    // Load models
+    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+    await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+    await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+
+    // Load images
+    const image1 = await canvas.loadImage(imgPath1);
+    const image2 = await canvas.loadImage(imgPath2);
+
+    // Detect faces and get descriptors
+    const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
+    const face2 = await faceapi.detectSingleFace(image2).withFaceLandmarks().withFaceDescriptor();
+
+    // Check if faces were detected
+    if (face1 && face2) {
+        const faceMatcher = new faceapi.FaceMatcher([face1.descriptor]);
+        const result = faceMatcher.findBestMatch(face2.descriptor);
+        console.log(`Similarity: ${result.toString()}`);
+        return result;
+    } else {
+        throw new Error('Unable to detect faces in one or both images.');
+    }
+};
+
+// Usage
+compareFaces('c:\\Users\\user\\OneDrive\\Pictures\\Camera Roll\\WIN_20241028_17_53_50_Pro.jpg','c:\\Users\\user\\OneDrive\\Pictures\\Camera Roll\\WIN_20241028_17_55_07_Pro.jpg');
+  
+}
 </script>
 
 <style>
