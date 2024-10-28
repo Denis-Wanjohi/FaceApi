@@ -19,7 +19,7 @@ const canvas = ref(null);
 const detection = ref(null);
 const expression = ref([])
 const max = ref([])
-const face = ref([])
+const face = ref()
 
 watch(detection,()=>{
   if(detection.length != 0){
